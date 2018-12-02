@@ -5,7 +5,6 @@ const parseInput = () => u.parseInput('input.txt')
 
 const head = ([x]) => x;
 const tail = ([, ...xs]) => xs;
-const empty = a => !Array.isArray(a) || !a.length;
 
 const solveP1 = () => parseInput()
   .reduce((a, b) => a + b, 0);
@@ -14,7 +13,7 @@ const solveP2 = () => {
   const input = parseInput();
 
   const recursive = (acc, rem, freqs) => {
-    if (empty(rem)) {
+    if (u.empty(rem)) {
       return {
         found: false,
         acc,
