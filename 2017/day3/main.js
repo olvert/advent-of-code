@@ -81,7 +81,6 @@ const walkAdjacent = (c) => {
     m += 1;
   }
 
-  // console.log({ plane });
   return i;
 };
 
