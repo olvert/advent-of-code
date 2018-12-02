@@ -1,8 +1,6 @@
-const fs = require('fs');
+const u = require('../../utils');
 
-const parseInput = () => fs.readFileSync('input.txt', 'utf-8')
-  .toString()
-  .split(/\r?\n/g)
+const parseInput = () => u.parseInput('input.txt')
   .map(s => parseInt(s, 10));
 
 const head = ([x]) => x;
@@ -53,14 +51,4 @@ const solveP2 = () => {
   return res.freq;
 };
 
-const main = () => {
-  const timeLabel = 'Elapsed time';
-  const answerLabel = 'Answer:';
-
-  console.time(timeLabel);
-  const answer = solveP2();
-  console.log(answerLabel, answer);
-  console.timeEnd(timeLabel);
-};
-
-main();
+u.main(solveP2);
