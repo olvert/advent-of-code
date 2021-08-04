@@ -1,0 +1,21 @@
+{
+    "name": "ollesvensson/php",
+    "authors": [
+        {
+            "name": "Olle",
+            "email": "me@olle.io"
+        }
+    ],
+    "require": {
+        "illuminate/support": "^8.52"
+    },
+    "autoload": {
+        "classmap": ["src"]
+    },
+    "scripts": {
+        "test": "@php entry.php",
+        "test2": [
+            "Advent\\Entry::execute"
+        ]
+    }
+}
