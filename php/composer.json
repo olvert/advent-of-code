@@ -7,14 +7,14 @@
         }
     ],
     "require": {
-        "illuminate/support": "^8.52"
+        "illuminate/support": "^8.52",
+        "spatie/laravel-collection-macros": "^7.9"
     },
     "autoload": {
         "classmap": ["src"]
     },
     "scripts": {
-        "test": "@php entry.php",
-        "test2": [
+        "solve": [
             "Advent\\Entry::execute"
         ]
     },
