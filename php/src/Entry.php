@@ -25,7 +25,17 @@ class Entry
         $result = $solver();
         $end = hrtime(true);
 
-        echo 'Result: ' . $result . "\n";
-        echo 'Elapsed milliseconds: ' . ($end - $start) / 1000000 . "\n";
+        echo 'Result: ' . $result . PHP_EOL;
+        echo 'Elapsed milliseconds: ' . ($end - $start) / 1000000 . PHP_EOL;
+
+        static::printPeakMemoryUsage();
+    }
+
+    private static function printPeakMemoryUsage(): void
+    {
+        $peakUsageInBytes = memory_get_peak_usage();
+        $peakUsageInMegaBytes = $peakUsageInBytes / (1000 * 1000);
+
+        echo 'Peak memory usage: ' . round($peakUsageInMegaBytes) . 'MB' . PHP_EOL;
     }
 }

@@ -8,7 +8,8 @@
     ],
     "require": {
         "illuminate/support": "^8.52",
-        "spatie/laravel-collection-macros": "^7.9"
+        "spatie/laravel-collection-macros": "^7.9",
+        "symfony/var-dumper": "^6.0"
     },
     "autoload": {
         "classmap": ["src"]
