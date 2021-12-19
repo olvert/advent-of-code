@@ -8,14 +8,15 @@ use Illuminate\Support\Collection;
 
 class Day9 extends Day
 {
+    private const DEFAULT_VALUE = 10;
+
     public static function solveA()
     {
         $locations = static::parseInput();
 
-        $valueExtractor = static::createValueExtractor($locations);
-
-        return static::parseLowPoints($locations, $valueExtractor)
-            ->map(fn ($p) => $valueExtractor($p['x'], $p['y']) + 1)
+        return $locations
+            ->filter(fn ($value, $pointHash) => static::isLowPoint($pointHash, $locations))
+            ->map(fn ($value) => $value + 1)
             ->sum();
     }
 
@@ -23,33 +24,31 @@ class Day9 extends Day
     {
         $locations = static::parseInput();
 
-        $valueExtractor = static::createValueExtractor($locations);
-
-        $lowPoints = static::parseLowPoints($locations, $valueExtractor);
+        $lowPoints = $locations->filter(fn ($value, $pointHash) => static::isLowPoint($pointHash, $locations));
 
         return $lowPoints
-            ->map(fn ($point) => static::parseBasinFromLowPoint($locations, $valueExtractor, $point))
+            ->map(fn ($value, $pointHash) => static::parseBasinFromLowPoint($locations, $pointHash))
             ->map(fn ($basin) => $basin->count())
             ->sortDesc()
             ->take(3)
             ->reduce(fn ($carry, $count) => $carry * $count, 1);
     }
 
-    private static function parseBasinFromLowPoint(Collection $locations, callable $valueExtractor, array $lowPoint): Collection
+    private static function parseBasinFromLowPoint(Collection $locations, string $pointHash): Collection
     {
         $members = collect([
-            static::toHash($lowPoint) => true,
+            $pointHash => true,
         ]);
 
-        $candidates = collect(static::getCandidatesFromPoint($lowPoint, $valueExtractor($lowPoint['x'], $lowPoint['y'])));
+        $candidates = collect(static::getCandidatesFromPoint($pointHash, $locations->get($pointHash)));
 
         while ($candidates->count() > 0) {
             $candidate = $candidates->shift();
-            $candidateValue = $valueExtractor($candidate['x'], $candidate['y']);
+            $value = $locations->get($candidate['pointHash'], static::DEFAULT_VALUE);
 
-            if (static::isValidBasinMember($candidateValue, $candidate['neighbourValue'])) {
-                $members[static::toHash($candidate)] = true;
-                $candidates->push(...static::getCandidatesFromPoint($candidate, $candidateValue));
+            if (static::isValidBasinMember($value, $candidate['neighbourValue'])) {
+                $members[$candidate['pointHash']] = true;
+                $candidates->push(...static::getCandidatesFromPoint($candidate['pointHash'], $value));
             }
         }
 
@@ -61,97 +60,67 @@ class Day9 extends Day
         return $candidateValue > $neighbourValue && $candidateValue < 9;
     }
 
-    private static function getCandidatesFromPoint(array $point, int $value): array
+    private static function getCandidatesFromPoint(string $pointHash, int $value): array
     {
-        $x = $point['x'];
-        $y = $point['y'];
+        [$x, $y] = static::toPoint($pointHash);
 
         return [
             [
-                'x' => $x - 1,
-                'y' => $y,
+                'pointHash' => static::toHash($x - 1, $y),
                 'neighbourValue' => $value,
             ],
             [
-                'x' => $x + 1,
-                'y' => $y,
+                'pointHash' => static::toHash($x + 1, $y),
                 'neighbourValue' => $value,
             ],
             [
-                'x' => $x,
-                'y' => $y - 1,
+                'pointHash' => static::toHash($x, $y - 1),
                 'neighbourValue' => $value,
             ],
             [
-                'x' => $x,
-                'y' => $y + 1,
+                'pointHash' => static::toHash($x, $y + 1),
                 'neighbourValue' => $value,
             ],
         ];
     }
 
-    private static function parseLowPoints(Collection $locations, callable $valueExtractor): Collection
-    {
-        $lowPoints = collect();
-
-        for ($x = 0; $x < $locations->first()->count(); $x++) {
-            for ($y = 0; $y < $locations->count(); $y++) {
-                if (static::isLowPoint($x, $y, $valueExtractor)) {
-                    $lowPoints->push([
-                        'x' => $x,
-                        'y' => $y,
-                    ]);
-                }
-            }
-        }
-
-        return $lowPoints;
-    }
-
     private static function toPoint(string $hash): array
     {
-        [$x, $y] = explode(':', $hash);
-
-        return compact('x', 'y');
+        return explode(':', $hash);
     }
 
-    private static function toHash(array $point): string
+    private static function toHash(int $x, int $y): string
     {
-        return $point['x'] . ':' . $point['y'];
+        return $x . ':' . $y;
     }
 
-    private static function isLowPoint(int $x, int $y, callable $valueExtractor): bool
+    private static function isLowPoint(string $pointHash, Collection $locations): bool
     {
-        $current = $valueExtractor($x, $y);
+        [$x, $y] = static::toPoint($pointHash);
+        $current = $locations->get($pointHash);
 
-        $up = $valueExtractor($x, $y - 1);
-        $down = $valueExtractor($x, $y + 1);
-        $left = $valueExtractor($x - 1, $y);
-        $right = $valueExtractor($x + 1, $y);
+        $up = $locations->get(static::toHash($x, $y - 1), static::DEFAULT_VALUE);
+        $down = $locations->get(static::toHash($x, $y + 1), static::DEFAULT_VALUE);
+        $left = $locations->get(static::toHash($x - 1, $y), static::DEFAULT_VALUE);
+        $right = $locations->get(static::toHash($x + 1, $y), static::DEFAULT_VALUE);
 
         return collect([$up, $down, $left, $right])->filter(fn ($value) => $value <= $current)->count() === 0;
-    }
-
-    private static function createValueExtractor(Collection $locations): callable
-    {
-        $xMax = $locations->first()->count();
-        $yMax = $locations->count();
-
-        $outOfBoundsValue = $locations->collapse()->max() + 1;
-
-        return static function (int $x, int $y) use ($locations, $xMax, $yMax, $outOfBoundsValue): int {
-            if ($x < 0 || $x >= $xMax || $y < 0 || $y >= $yMax) {
-                return $outOfBoundsValue;
-            }
-
-            return $locations[$y][$x];
-        };
     }
 
     private static function parseInput(): Collection
     {
         $input = InputLoader::load(__DIR__ . '/input.txt');
 
-        return collect($input)->map(fn ($row) => collect(str_split($row))->map(fn ($number) => intval($number)));
+        $matrix = collect($input)->map(fn ($row) => collect(str_split($row))->map(fn ($number) => intval($number)));
+
+        $locations = [];
+
+        for ($x = 0; $x < $matrix->first()->count(); $x++) {
+            for ($y = 0; $y < $matrix->count(); $y++) {
+                $locations[static::toHash($x, $y)] = $matrix[$y][$x];
+            }
+        }
+
+        return collect($locations);
     }
 }
