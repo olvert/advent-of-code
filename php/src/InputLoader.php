@@ -6,13 +6,18 @@ use Exception;
 
 class InputLoader
 {
-    public static function load(string $path): array
+    public static function loadString(string $path): string
     {
         if (!file_exists($path)) {
             throw new Exception('Cannot find file at path: ' . $path);
         }
 
-        $file = file_get_contents($path);
+        return file_get_contents($path);
+    }
+
+    public static function load(string $path): array
+    {
+        $file = static::loadString($path);
 
         return explode("\n", $file);
     }
