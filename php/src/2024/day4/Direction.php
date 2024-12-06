@@ -1,6 +1,6 @@
 <?php
 
-namespace Advent\Year2024;
+namespace Advent\Year2024\Day4;
 
 enum Direction
 {

@@ -4,6 +4,7 @@ namespace Advent\Year2024;
 
 use Advent\Day;
 use Advent\InputLoader;
+use Advent\Year2024\Day4\Direction;
 use Illuminate\Support\Collection;
 
 class Day4 extends Day
