@@ -25,6 +25,7 @@ class Entry
         $result = $solver();
         $end = hrtime(true);
 
+        echo PHP_EOL;
         echo 'Result: ' . $result . PHP_EOL;
         echo 'Elapsed milliseconds: ' . ($end - $start) / 1000000 . PHP_EOL;
 

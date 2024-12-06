@@ -9,7 +9,8 @@
     "require": {
         "illuminate/support": "^10.34",
         "spatie/laravel-collection-macros": "^7.13",
-        "symfony/var-dumper": "^7.0"
+        "symfony/var-dumper": "^7.0",
+        "symfony/console": "^7.2"
     },
     "autoload": {
         "classmap": ["src"]
