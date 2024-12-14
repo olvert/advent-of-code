@@ -6,8 +6,6 @@ use Advent\Day;
 use Advent\InputLoader;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
-use Symfony\Component\Console\Helper\ProgressBar;
-use Symfony\Component\Console\Output\ConsoleOutput;
 
 class Day11 extends Day
 {
@@ -25,38 +23,33 @@ class Day11 extends Day
     {
         $input = InputLoader::loadString(__DIR__ . '/input.txt');
 
-        $stones = static::parseInput($input);
+        $cache = Collection::times($numOfBlinks + 1, fn () => collect());
 
-        $progressBar = new ProgressBar(new ConsoleOutput(), $numOfBlinks);
-        $progressBar->setFormat('debug');
-
-        return static::blink($stones, $numOfBlinks, $progressBar)->count();
+        return static::parseInput($input)
+            ->map(fn (int $stone) => static::blink($stone, $numOfBlinks, $cache))
+            ->sum();
     }
 
-    private static function blink(Collection $stones, int $times, ?ProgressBar $bar = null): Collection
+    private static function blink(int $stone, int $times, Collection $cache)
     {
-        if ($times === 0) {
-            $bar?->finish();
-
-            return $stones;
-        }
-    
-        $bar?->advance();
-
-        return static::blink(static::blinkOnce($stones), $times - 1, $bar);
+        return $cache[$times][$stone] ??= match ($times) {
+            0 => 1,
+            default => static::evolveStone($stone)
+                ->map(fn (int $evolvedStone) => static::blink($evolvedStone, $times - 1, $cache))
+                ->flatten()
+                ->sum(),
+        };
     }
 
-    private static function blinkOnce(Collection $stones): Collection
+    private static function evolveStone(int $stone): Collection
     {
-        return $stones->reduce(function (Collection $acc, int $stone) {
-            $evolvedStone = match (true) {
-                $stone === 0 => 1,
-                Str::of($stone)->length() % 2 === 0 => static::splitStone($stone),
-                default => $stone * 2024,
-            };
+        $evolvedStone = match (true) {
+            $stone === 0 => 1,
+            Str::of($stone)->length() % 2 === 0 => static::splitStone($stone),
+            default => $stone * 2024,
+        };
 
-            return $acc->concat(Collection::wrap($evolvedStone));
-        }, collect());
+        return Collection::wrap($evolvedStone);
     }
 
     private static function splitStone(int $stone)
